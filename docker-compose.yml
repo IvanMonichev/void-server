@@ -1,0 +1,67 @@
+services:
+  void-server:
+    image: ivanmonichev/void-server
+    container_name: void-server
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - backend
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - void-server
+    restart: unless-stopped
+    networks:
+      - backend
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: wpdb
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - backend
+
+
+  wordpress:
+    image: wordpress:latest
+    depends_on:
+      - db
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+
+      WORDPRESS_DB_USER: admin
+      WORDPRESS_DB_PASSWORD: password
+      WORDPRESS_DB_NAME: wpdb
+    volumes:
+      - ./wp:/var/www/html    # локальная папка
+    networks:
+      - backend
+
+
+volumes:
+  caddy_data:
+  caddy_config:
+  db_data:
+
+networks:
+  backend:
+    driver: bridge

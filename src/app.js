@@ -1,22 +1,26 @@
-import express from 'express'
-import headers from './middleware/headers.js'
-import router from './routes/index.js'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from "node:url";
+const express = require('express')
+const { MongoClient } = require('mongodb')
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const app = express()
 
-const app = express();
-app.use(headers)
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', '*')
+  next()
+})
 
-app.set("view engine", "ejs");
-app.set("views", join(__dirname, "views"));
-app.use(express.static(join(__dirname, "public")));
+app.use(express.urlencoded({ extended: true }))
 
+app.get('/', (_, res) => {
+  res.send(`Server Work`)
+})
 
-app.use(router)
+app.get('/login/', (_, res) => {
+  res.send('6ed6f825-864d-4b50-8d8f-ec3bf589ae03')
+})
 
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 8000
+
+app.listen(PORT)
+console.log(`Server is running on port ${PORT}`)
